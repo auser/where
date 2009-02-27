@@ -10,7 +10,8 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0]).
+-export ([start/2]).
+-export([start_link/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -36,8 +37,23 @@
 %% Function: start_link() -> {ok,Pid} | ignore | {error,Error}
 %% Description: Starts the server
 %%--------------------------------------------------------------------
+start(_Type, Config) ->
+  start_link(Config).
+  
 start_link(Config) ->
   gen_server:start_link({local, ?SERVER}, ?MODULE, [Config], []).
+  
+lookup(Key) ->
+  gen_server:call(?SERVER, {lookup, Key}).
+  
+layers_receive(Msg) ->
+  case Msg of
+    {lookup, Socket, Data} ->
+      Reply = converse:reply(Socket, {data, "Thanks!"}),
+      Reply;
+    Anything ->
+      io:format("layers_receive recieved: ~p~n", [Anything])
+  end.
 
 %%====================================================================
 %% gen_server callbacks
@@ -52,7 +68,7 @@ start_link(Config) ->
 %%--------------------------------------------------------------------
 init([Config]) ->
   [Successor, Mod] = config:fetch_or_default_config([successor,mod], Config, ?DEFAULT_CONFIG),
-  {ok, #state{
+  {ok, #where_state{
               successor = Successor,
               module = Mod
               }}.
@@ -66,11 +82,11 @@ init([Config]) ->
 %%                                      {stop, Reason, State}
 %% Description: Handling call messages
 %%--------------------------------------------------------------------
-handle_call({lookup, Key}, From, where_state#{successor = Successor, module = Mod} = State) ->
+handle_call({lookup, Key}, From, #where_state{successor = Successor, module = Mod} = State) ->
   Val = Mod:lookup(Key),
   case Successor of
     undefined -> layers_receive({lookup, Val});
-    Suc -> spawn_link(fun() -> layers:pass(Successor, {lookup, Socket, Val}) end)
+    Suc -> spawn_link(fun() -> layers:pass(Successor, {lookup, Val}) end)
   end,
   {reply, Val, State};
   
