@@ -24,7 +24,6 @@
 
 -define(SERVER, ?MODULE).
 -define (DEFAULT_CONFIG, [
-                            {successor, ?MODULE},
                             {module, chordjerl}
                           ]). 
 
@@ -43,6 +42,8 @@ start_link(Config) ->
     
 layers_receive(Msg) ->
   case Msg of
+    {lookup, Data} ->
+      io:format("Found data on lookup: ~p~n", [Data]);
     {lookup, Socket, Data} ->
       Reply = converse:reply(Socket, {data, "Thanks!"}),
       Reply;
