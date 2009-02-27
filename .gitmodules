@@ -4,3 +4,6 @@
 [submodule "deps/chordjerl"]
 	path = deps/chordjerl
 	url = git://github.com/jashmenn/chordjerl.git
+[submodule "deps/layers"]
+	path = deps/layers
+	url = git@github.com:auser/layers.git
