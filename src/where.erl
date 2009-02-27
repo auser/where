@@ -1,7 +1,7 @@
 -module (where).
 
 -behaviour(application).
--define (APPLICATIONS_TO_START, []).
+-define (APPLICATIONS_TO_START, [chordjerl]).
 %% application callbacks
 -export([start/2, stop/1]).
 -export ([init/1]).
@@ -13,9 +13,9 @@
 lookup(Key) ->
   gen_server:call(where_server, {lookup, Key}).
 
-start(_Type, Config) ->    
+start(Type, Config) ->    
     layers:start_bundle([
-      {"Applications", fun() -> [application:start(A) || A <- ?APPLICATIONS_TO_START] end},
+      {"Applications", fun() -> [A:start(Type, Config) || A <- ?APPLICATIONS_TO_START] end},
       {"Where server", fun() -> supervisor:start_link({local, ?MODULE}, ?MODULE, [Config]) end}
     ]).
 
