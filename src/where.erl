@@ -4,7 +4,7 @@
 -define (APPLICATIONS_TO_START, [chordjerl]).
 %% application callbacks
 -export([start/2, stop/1]).
--export ([init/1]).
+-export ([init/1, layers_receive/1]).
 -export ([lookup/1]).
 
 -define (MAXIMUM_RESTARTS, 10).
@@ -12,6 +12,17 @@
 
 lookup(Key) ->
   gen_server:call(where_server, {lookup, Key}).
+  
+layers_receive(Msg) ->
+  case Msg of
+    {lookup, Data} ->
+      io:format("Found data on lookup: ~p~n", [Data]);
+    {lookup, Socket, Data} ->
+      Reply = converse:reply(Socket, {data, "Thanks!"}),
+      Reply;
+    Anything ->
+      io:format("layers_receive recieved: ~p~n", [Anything])
+  end.
 
 start(Type, Config) ->    
     layers:start_bundle([

@@ -40,17 +40,6 @@ start(_Type, Config) ->
 start_link(Config) ->
   gen_server:start_link({local, ?SERVER}, ?MODULE, [Config], []).
     
-layers_receive(Msg) ->
-  case Msg of
-    {lookup, Data} ->
-      io:format("Found data on lookup: ~p~n", [Data]);
-    {lookup, Socket, Data} ->
-      Reply = converse:reply(Socket, {data, "Thanks!"}),
-      Reply;
-    Anything ->
-      io:format("layers_receive recieved: ~p~n", [Anything])
-  end.
-
 %%====================================================================
 %% gen_server callbacks
 %%====================================================================
@@ -81,7 +70,7 @@ init([Config]) ->
 handle_call({lookup, Key}, From, #where_state{successor = Successor, module = Mod} = State) ->
   Val = Mod:lookup(Key),
   case Successor of
-    undefined -> layers_receive({lookup, Val});
+    undefined -> where:layers_receive({lookup, Val});
     Suc -> spawn_link(fun() -> layers:pass(Successor, {lookup, Val}) end)
   end,
   {reply, Val, State};
