@@ -15,13 +15,17 @@ lookup(Key) ->
   
 layers_receive(Msg) ->
   case Msg of
-    {lookup, Data} ->
-      io:format("Found data on lookup: ~p~n", [Data]);
-    {lookup, Socket, Data} ->
-      Reply = converse:reply(Socket, {data, "Thanks!"}),
-      Reply;
+    {whisper, Socket, Unencrypted} ->
+      case Unencrypted of
+        {lookup, Key} ->
+          Val = lookup(Key),
+          Reply = converse:reply(Socket, {reply, Val}),
+          Reply;
+        Else ->
+          io:format("where layers_receive: ~p~n", [Else])
+      end;
     Anything ->
-      io:format("layers_receive recieved: ~p~n", [Anything])
+      io:format("layers_receive Received: ~p (in ~p)~n", [Anything, ?MODULE])
   end.
 
 start(Type, Config) ->    
